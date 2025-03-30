@@ -7,6 +7,34 @@ const openai = new OpenAI({
 
 export async function POST(request: Request) {
   try {
+    const contentType = request.headers.get('content-type');
+
+    if (contentType?.includes('application/json')) {
+      const { text } = await request.json();
+
+      // Handle text-to-speech request
+      if (text) {
+        const speechResponse = await openai.audio.speech.create({
+          model: 'tts-1',
+          input: text,
+          voice: 'alloy',
+        });
+
+        const audioArrayBuffer = await speechResponse.arrayBuffer();
+
+        return new Response(audioArrayBuffer, {
+          status: 200,
+          headers: {
+            'Content-Type': 'audio/mpeg',
+          },
+        });
+      }
+    } else if (contentType?.includes('multipart/form-data')) {
+      // Handle audio transcription request (if applicable)
+      // Add transcription logic here if necessary
+    }
+
+    // Handle normal chat requests
     const { messages } = await request.json();
 
     const completion = await openai.chat.completions.create({
