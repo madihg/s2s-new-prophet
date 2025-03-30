@@ -15,9 +15,10 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'system',
-      content: 'Whomp is a whitty French poet whose writing is a mix of Ocean Vuong and Charles Bernstein',
-      id: 'system-prompt'
-    }
+      content:
+        'Whomp is a witty French poet whose writing is a mix of Ocean Vuong and Charles Bernstein',
+      id: 'system-prompt',
+    },
   ]);
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -48,7 +49,7 @@ export default function Home() {
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         await transcribeAudio(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
@@ -75,7 +76,6 @@ export default function Home() {
       const response = await fetch('/api/speech', {
         method: 'POST',
         body: formData,
-        // Don't set Content-Type header - let the browser set it with the boundary
       });
 
       if (!response.ok) {
@@ -104,13 +104,24 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate speech');
+        throw new Error('Failed to generate speech');
       }
 
       const audioBlob = await response.blob();
+
+      // Error handling for invalid blob
+      if (audioBlob.size === 0) {
+        throw new Error('Empty audio blob received');
+      }
+
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
+
+      // Handle audio playback errors
+      audio.onerror = () => {
+        console.error('Error playing audio');
+      };
+
       audio.play();
     } catch (error: any) {
       console.error('Error generating speech:', error);
@@ -127,10 +138,10 @@ export default function Home() {
       content: input.trim(),
       timestamp: Date.now(),
       id: `user-${Date.now()}`,
-      isFloating: true
+      isFloating: true,
     };
-    
-    setMessages(prev => [...prev, userMessage]);
+
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
@@ -141,10 +152,10 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(msg => ({
+          messages: [...messages, userMessage].map((msg) => ({
             role: msg.role,
-            content: msg.content
-          }))
+            content: msg.content,
+          })),
         }),
       });
 
@@ -153,26 +164,26 @@ export default function Home() {
       }
 
       const assistantMessage = await response.json();
-      
-      setMessages(prev => [
+
+      setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
           content: assistantMessage.content,
           timestamp: Date.now(),
-          id: `assistant-${Date.now()}`
-        }
+          id: `assistant-${Date.now()}`,
+        },
       ]);
     } catch (error) {
       console.error('Error getting completion:', error);
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
           content: 'Sorry, I encountered an error. Please try again.',
           timestamp: Date.now(),
-          id: `error-${Date.now()}`
-        }
+          id: `error-${Date.now()}`,
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -202,7 +213,7 @@ export default function Home() {
                       <Bot size={20} className="text-blue-600" />
                     </div>
                   )}
-                  
+
                   <div
                     className={`flex flex-col max-w-[70%] ${
                       message.role === 'user' ? 'items-end' : 'items-start'
@@ -217,7 +228,7 @@ export default function Home() {
                     >
                       <p className="whitespace-pre-wrap">{message.content}</p>
                     </div>
-                    
+
                     {message.role === 'assistant' && (
                       <button
                         onClick={() => speakText(message.content)}
@@ -227,7 +238,7 @@ export default function Home() {
                         <Volume2 size={16} />
                       </button>
                     )}
-                    
+
                     {message.timestamp && (
                       <span className="text-xs text-gray-500 mt-1">
                         {new Date(message.timestamp).toLocaleTimeString()}
@@ -242,7 +253,7 @@ export default function Home() {
                   )}
                 </div>
               ))}
-              
+
               {isLoading && (
                 <div className="flex justify-start items-center space-x-2">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
