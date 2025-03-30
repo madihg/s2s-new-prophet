@@ -8,6 +8,7 @@ interface Message {
   content: string;
   timestamp?: number;
   id: string;
+  isFloating?: boolean;
 }
 
 export default function Home() {
@@ -125,7 +126,8 @@ export default function Home() {
       role: 'user',
       content: input.trim(),
       timestamp: Date.now(),
-      id: `user-${Date.now()}`
+      id: `user-${Date.now()}`,
+      isFloating: true
     };
     
     setMessages(prev => [...prev, userMessage]);
@@ -178,11 +180,11 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200">
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <div className="bg-white rounded-xl shadow-xl overflow-hidden">
           <div className="h-[700px] flex flex-col">
-            <div className="p-4 bg-gray-50 border-b border-gray-200">
+            <div className="p-4 bg-blue-50 border-b border-blue-200">
               <h1 className="text-2xl font-semibold text-gray-800">AI Poet Chat</h1>
               <p className="text-sm text-gray-600">Chat with Whomp, the French AI poet</p>
             </div>
@@ -209,7 +211,7 @@ export default function Home() {
                     <div
                       className={`rounded-2xl p-4 ${
                         message.role === 'user'
-                          ? 'bg-blue-500 text-white'
+                          ? 'bg-blue-500 text-white' + (message.isFloating ? ' animate-bounce' : '')
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
